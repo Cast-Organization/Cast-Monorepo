@@ -39,4 +39,5 @@ export const PRICES = {
   turnaround: '$1.00',
 } as const
 
-export const NETWORK = 'eip155:196' as const
+// Payment network: eip155:196 = X Layer mainnet, eip155:1952 = X Layer testnet (free testing).
+export const NETWORK = (process.env.X402_NETWORK ?? 'eip155:196') as `eip155:${number}`
