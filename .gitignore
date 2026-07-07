@@ -1,0 +1,14 @@
+# secrets — NEVER commit
+.env
+.env.*
+!.env.example
+
+# deps / build
+node_modules/
+dist/
+
+# local data / generated images
+data/
+out/
+*.log
+.DS_Store
