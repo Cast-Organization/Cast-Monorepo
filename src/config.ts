@@ -8,12 +8,24 @@ function req(name: string, fallback?: string): string {
   return v
 }
 
+// Treat leftover template placeholders (blank / inline-comment) as unset.
+function clean(v?: string): string {
+  const t = (v ?? '').trim()
+  return !t || t.startsWith('#') ? '' : t.replace(/\s+#.*$/, '').trim()
+}
+// Private key: tolerate a missing 0x prefix.
+function normPk(v?: string): `0x${string}` {
+  const t = clean(v).replace(/\s.*$/, '')
+  if (!t) return '' as `0x${string}`
+  return (t.startsWith('0x') ? t : `0x${t}`) as `0x${string}`
+}
+
 export const env = {
   FAL_KEY: req('FAL_KEY', ''),
   XLAYER_RPC: req('XLAYER_RPC', 'https://xlayerrpc.okx.com'),
-  PASSPORT_CONTRACT: (process.env.PASSPORT_CONTRACT ?? '') as `0x${string}`,
-  SIGNER_PK: (process.env.SIGNER_PK ?? '') as `0x${string}`,
-  PAY_TO: process.env.PAY_TO ?? '',
+  PASSPORT_CONTRACT: clean(process.env.PASSPORT_CONTRACT) as `0x${string}`,
+  SIGNER_PK: normPk(process.env.SIGNER_PK),
+  PAY_TO: clean(process.env.PAY_TO),
   OKX_API_KEY: process.env.OKX_API_KEY ?? '',
   OKX_SECRET_KEY: process.env.OKX_SECRET_KEY ?? '',
   OKX_PASSPHRASE: process.env.OKX_PASSPHRASE ?? '',

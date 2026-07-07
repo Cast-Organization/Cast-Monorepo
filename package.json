@@ -9,6 +9,7 @@
     "start": "tsx src/server.ts",
     "smoke": "tsx scripts/smoke.ts",
     "check:okx": "tsx scripts/check-okx.ts",
+    "check:wallet": "tsx scripts/check-wallet.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
