@@ -2,6 +2,7 @@ import { fluxCreatePortrait } from './fal.js'
 import { buildPortraitPrompt } from '../prompts.js'
 import { hashImage, mintPassport } from '../chain/passport.js'
 import { saveCharacter } from '../store/db.js'
+import { env } from '../config.js'
 
 export type CreateInput = {
   owner: `0x${string}`
@@ -34,10 +35,12 @@ export async function createCharacter(input: CreateInput): Promise<CreateResult>
   const bytes = new Uint8Array(await (await fetch(portraitUrl)).arrayBuffer())
   const referenceHash = hashImage(bytes)
 
+  // Mint an on-chain passport only if a contract is configured (else off-chain id).
+  const shouldMint = input.mint ?? Boolean(env.PASSPORT_CONTRACT)
   let charId: string
   let passportTx: string | undefined
-  if (input.mint === false) {
-    charId = referenceHash // off-chain fallback id for local testing
+  if (!shouldMint) {
+    charId = referenceHash // off-chain fallback id
   } else {
     const res = await mintPassport(input.owner, referenceHash, /* metadataURI */ '')
     charId = res.charId

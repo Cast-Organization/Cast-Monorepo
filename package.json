@@ -11,6 +11,7 @@
     "check:okx": "tsx scripts/check-okx.ts",
     "check:wallet": "tsx scripts/check-wallet.ts",
     "pay:test": "tsx scripts/pay-test.ts",
+    "pay:render": "tsx scripts/pay-render.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
