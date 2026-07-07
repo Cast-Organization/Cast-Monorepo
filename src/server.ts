@@ -27,6 +27,7 @@ const facilitator = new OKXFacilitatorClient({
 const resourceServer = new x402ResourceServer(facilitator).register(NETWORK, new ExactEvmScheme())
 
 const httpServer = new x402HTTPResourceServer(resourceServer, {
+  'POST /cast/echo':             { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: '$0.01' } }, // cheap payment-loop test
   'POST /cast/create_character': { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.create_character } },
   'POST /cast/render':           { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.render } },
   'POST /cast/turnaround':       { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.turnaround } },
@@ -52,6 +53,9 @@ app.post('/cast/turnaround', async (req, res) => {
   try { res.json(await turnaround(req.body?.charId)) }
   catch (e: any) { res.status(400).json({ error: e.message }) }
 })
+
+// paid echo — validates the x402 payment loop cheaply (no fal, no charId)
+app.post('/cast/echo', (req, res) => res.json({ ok: true, echo: req.body ?? null }))
 
 // free, unpriced health check
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'cast', network: NETWORK }))
