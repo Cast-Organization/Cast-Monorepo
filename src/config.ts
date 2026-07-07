@@ -2,12 +2,12 @@ import dotenv from 'dotenv'
 dotenv.config({ override: true }) // .env is the single source of truth (beats stale shell vars)
 import { defineChain } from 'viem'
 
+// ---------- helpers ----------
 function req(name: string, fallback?: string): string {
   const v = process.env[name] ?? fallback
   if (v === undefined) throw new Error(`Missing env ${name}`)
   return v
 }
-
 // Treat leftover template placeholders (blank / inline-comment) as unset.
 function clean(v?: string): string {
   const t = (v ?? '').trim()
@@ -20,9 +20,32 @@ function normPk(v?: string): `0x${string}` {
   return (t.startsWith('0x') ? t : `0x${t}`) as `0x${string}`
 }
 
+// ---------- network ----------
+// Payment network: eip155:196 = X Layer mainnet, eip155:1952 = X Layer testnet (free testing).
+export const NETWORK = (clean(process.env.X402_NETWORK) || 'eip155:196') as `eip155:${number}`
+const CHAIN_ID = Number(NETWORK.split(':')[1])
+
+// USDT0 addresses match the OKX SDK DEFAULT_STABLECOINS map (both 6 decimals).
+const NETS = {
+  196: {
+    name: 'X Layer',
+    rpc: 'https://xlayerrpc.okx.com',
+    explorer: 'https://www.oklink.com/x-layer',
+    usdt0: '0x779ded0c9e1022225f8e0630b35a9b54be713736',
+  },
+  1952: {
+    name: 'X Layer Testnet',
+    rpc: 'https://testrpc.xlayer.tech/terigon',
+    explorer: 'https://www.oklink.com/x-layer-testnet',
+    usdt0: '0x9e29b3aada05bf2d2c827af80bd28dc0b9b4fb0c',
+  },
+} as const
+const NET = NETS[CHAIN_ID as keyof typeof NETS] ?? NETS[196]
+
+// ---------- env ----------
 export const env = {
   FAL_KEY: req('FAL_KEY', ''),
-  XLAYER_RPC: req('XLAYER_RPC', 'https://xlayerrpc.okx.com'),
+  XLAYER_RPC: clean(process.env.XLAYER_RPC) || NET.rpc, // defaults to the active network's RPC
   PASSPORT_CONTRACT: clean(process.env.PASSPORT_CONTRACT) as `0x${string}`,
   SIGNER_PK: normPk(process.env.SIGNER_PK),
   PAY_TO: clean(process.env.PAY_TO),
@@ -32,17 +55,16 @@ export const env = {
   PORT: Number(process.env.PORT ?? 4000),
 }
 
-// X Layer mainnet — chainId 196. Gas token OKB.
 export const xLayer = defineChain({
-  id: 196,
-  name: 'X Layer',
+  id: CHAIN_ID,
+  name: NET.name,
   nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
   rpcUrls: { default: { http: [env.XLAYER_RPC] } },
-  blockExplorers: { default: { name: 'OKLink', url: 'https://www.oklink.com/x-layer' } },
+  blockExplorers: { default: { name: 'OKLink', url: NET.explorer } },
 })
 
-// Settlement token used by OKX.AI marketplace (auto-configured by the x402 SDK).
-export const USDT0 = '0x779Ded0c9e1022225f8E0630b35a9b54bE713736' as const
+// Settlement token (USDT0) for the active network.
+export const USDT0 = NET.usdt0 as `0x${string}`
 
 // Per-call prices (USD strings; SDK converts to USDT0 atomic units @ 6 decimals).
 export const PRICES = {
@@ -50,6 +72,3 @@ export const PRICES = {
   render: '$0.30',
   turnaround: '$1.00',
 } as const
-
-// Payment network: eip155:196 = X Layer mainnet, eip155:1952 = X Layer testnet (free testing).
-export const NETWORK = (process.env.X402_NETWORK ?? 'eip155:196') as `eip155:${number}`
