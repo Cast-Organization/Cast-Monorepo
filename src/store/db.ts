@@ -8,6 +8,7 @@ export type Character = {
   name: string
   referenceUrl: string
   referenceHash: string
+  seed?: number          // reuse across renders for stronger consistency
   styleRef?: string
   createdAt: number
   renders: number

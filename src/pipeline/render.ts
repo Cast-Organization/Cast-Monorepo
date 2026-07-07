@@ -1,4 +1,4 @@
-import { kontextRender } from './fal.js'
+import { kontextRender, type AspectRatio } from './fal.js'
 import { buildRenderPrompt, guardPrompt } from '../prompts.js'
 import { getCharacter, bumpRenders } from '../store/db.js'
 
@@ -14,7 +14,10 @@ export async function render(input: RenderInput): Promise<{ charId: string; imag
   guardPrompt(input.scene)
 
   const prompt = buildRenderPrompt(input.scene, input)
-  const imageUrl = await kontextRender(char.referenceUrl, prompt)
+  const { url: imageUrl } = await kontextRender(char.referenceUrl, prompt, {
+    aspectRatio: (input.aspect as AspectRatio) ?? '1:1',
+    seed: char.seed,
+  })
   await bumpRenders(input.charId)
   return { charId: input.charId, imageUrl }
 }
@@ -33,7 +36,8 @@ export async function turnaround(charId: string): Promise<{ charId: string; imag
   ]
   const images: string[] = []
   for (const v of views) {
-    images.push(await kontextRender(char.referenceUrl, buildRenderPrompt(v, { style: 'character reference sheet' })))
+    const { url } = await kontextRender(char.referenceUrl, buildRenderPrompt(v, { style: 'character reference sheet' }), { seed: char.seed })
+    images.push(url)
   }
   await bumpRenders(charId)
   return { charId, images }

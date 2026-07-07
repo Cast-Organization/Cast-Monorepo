@@ -10,14 +10,15 @@ export function buildPortraitPrompt(description: string): string {
 
 export function buildRenderPrompt(
   scene: string,
-  opts: { shot?: string; mood?: string; style?: string; aspect?: string } = {},
+  opts: { shot?: string; mood?: string; style?: string } = {},
 ): string {
-  const { shot = 'medium shot', mood = 'natural lighting', style = 'consistent illustration style', aspect = '1:1' } = opts
+  const { shot = 'medium shot', mood = 'natural lighting', style = 'consistent illustration style' } = opts
+  // aspect ratio is passed to the model as a real param (aspect_ratio), not baked into the prompt
   return [
     `Keep the SAME character identity, face, hairstyle, and signature outfit from the reference image.`,
     `Do NOT change who they are.`,
     `New scene: ${scene}.`,
-    `Camera: ${shot}. Lighting: ${mood}. Style: ${style}. Aspect: ${aspect}.`,
+    `Camera: ${shot}. Lighting: ${mood}. Style: ${style}.`,
   ].join(' ')
 }
 
