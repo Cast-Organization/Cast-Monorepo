@@ -1,4 +1,5 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+dotenv.config({ override: true }) // .env is the single source of truth (beats stale shell vars)
 import { defineChain } from 'viem'
 
 function req(name: string, fallback?: string): string {
