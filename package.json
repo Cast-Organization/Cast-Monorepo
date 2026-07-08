@@ -12,6 +12,9 @@
     "check:wallet": "tsx scripts/check-wallet.ts",
     "pay:test": "tsx scripts/pay-test.ts",
     "pay:render": "tsx scripts/pay-render.ts",
+    "pay:flow": "tsx scripts/pay-flow.ts",
+    "build:contract": "forge build",
+    "deploy:passport": "tsx scripts/deploy-passport.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -24,6 +27,7 @@
     "viem": "^2.21.0"
   },
   "devDependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
     "@types/express": "^4.17.21",
     "@types/node": "^22.7.0",
     "tsx": "^4.19.1",

@@ -32,6 +32,13 @@ export const passportAbi = [
     ],
   },
   {
+    type: 'function',
+    name: 'ownerOf',
+    stateMutability: 'view',
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    outputs: [{ name: '', type: 'address' }],
+  },
+  {
     type: 'event',
     name: 'Transfer',
     inputs: [

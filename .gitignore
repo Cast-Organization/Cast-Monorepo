@@ -7,6 +7,11 @@
 node_modules/
 dist/
 
+# foundry
+out/
+cache/
+broadcast/
+
 # local data / generated images
 data/
 out/
