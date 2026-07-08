@@ -6,6 +6,7 @@ import {
   paymentMiddlewareFromHTTPServer,
 } from '@okxweb3/x402-express'
 import { ExactEvmScheme } from '@okxweb3/x402-evm/exact/server'
+import { isAddress } from 'viem'
 import { env, NETWORK, PRICES } from './config.js'
 import { createCharacter } from './pipeline/createCharacter.js'
 import { render, turnaround } from './pipeline/render.js'
@@ -40,14 +41,20 @@ app.use(paymentMiddlewareFromHTTPServer(httpServer))
 app.post('/cast/create_character', async (req, res) => {
   try {
     const { owner, name, description, referenceUrl } = req.body ?? {}
-    const out = await createCharacter({ owner, name, description, referenceUrl })
-    res.json(out)
-  } catch (e: any) { res.status(400).json({ error: e.message }) }
+    if (!owner || !isAddress(owner)) return res.status(400).json({ error: 'valid owner address required' })
+    if (!name) return res.status(400).json({ error: 'name required' })
+    if (!description && !referenceUrl) return res.status(400).json({ error: 'description or referenceUrl required' })
+    return res.json(await createCharacter({ owner, name, description, referenceUrl }))
+  } catch (e: any) { return res.status(400).json({ error: e.message }) }
 })
 
 app.post('/cast/render', async (req, res) => {
-  try { res.json(await render(req.body)) }
-  catch (e: any) { res.status(400).json({ error: e.message }) }
+  try {
+    const { charId, scene } = req.body ?? {}
+    if (!charId) return res.status(400).json({ error: 'charId required' })
+    if (!scene) return res.status(400).json({ error: 'scene required' })
+    return res.json(await render(req.body))
+  } catch (e: any) { return res.status(400).json({ error: e.message }) }
 })
 
 app.post('/cast/turnaround', async (req, res) => {
