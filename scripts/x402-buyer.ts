@@ -22,7 +22,7 @@ export function createBuyer() {
   const client = new x402Client()
   registerExactEvmScheme(client, { signer })
   const x402 = new x402HTTPClient(client)
-  const base = `http://localhost:${env.PORT}`
+  const base = process.env.CAST_BASE_URL ?? `http://localhost:${env.PORT}` // set CAST_BASE_URL to test the deployed URL
 
   async function paidPost(route: string, body: unknown): Promise<PaidResult> {
     const url = base + route

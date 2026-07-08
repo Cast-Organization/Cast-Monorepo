@@ -53,8 +53,12 @@ export const env = {
   OKX_SECRET_KEY: process.env.OKX_SECRET_KEY ?? '',
   OKX_PASSPHRASE: process.env.OKX_PASSPHRASE ?? '',
   PORT: Number(process.env.PORT ?? 4000),
-  // Public base URL for serving stored images (set to your domain in production).
-  PUBLIC_BASE_URL: clean(process.env.PUBLIC_BASE_URL) || `http://localhost:${Number(process.env.PORT ?? 4000)}`,
+  // Public base URL for serving stored images (auto-detects Railway; set explicitly in prod).
+  PUBLIC_BASE_URL:
+    clean(process.env.PUBLIC_BASE_URL) ||
+    (process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : `http://localhost:${Number(process.env.PORT ?? 4000)}`),
 }
 
 export const xLayer = defineChain({
