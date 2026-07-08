@@ -15,6 +15,7 @@ import { render, turnaround } from './pipeline/render.js'
 // check github.com/okx/payments -> typescript/SELLER.md for the installed version.
 
 const app = express()
+app.set('trust proxy', true) // behind Railway's TLS proxy → req.protocol=https so x402 advertises https:// resource URLs
 app.use(express.json({ limit: '10mb' }))
 app.use('/images', express.static('data/images')) // serve stored renders/portraits (free)
 
