@@ -31,8 +31,11 @@ const resourceServer = new x402ResourceServer(facilitator).register(NETWORK, new
 const httpServer = new x402HTTPResourceServer(resourceServer, {
   'POST /cast/echo':             { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: '$0.01' } }, // cheap payment-loop test
   'POST /cast/create_character': { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.create_character } },
+  'GET /cast/create_character':  { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.create_character } }, // GET probe → 402 challenge (endpoint validation)
   'POST /cast/render':           { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.render } },
+  'GET /cast/render':            { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.render } },
   'POST /cast/turnaround':       { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.turnaround } },
+  'GET /cast/turnaround':        { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.turnaround } },
 })
 
 app.use(paymentMiddlewareFromHTTPServer(httpServer))
@@ -64,6 +67,12 @@ app.post('/cast/turnaround', async (req, res) => {
 
 // paid echo — validates the x402 payment loop cheaply (no fal, no charId)
 app.post('/cast/echo', (req, res) => res.json({ ok: true, echo: req.body ?? null }))
+
+// GET on a paid route: an unpaid probe gets the x402 402 challenge (for endpoint validation);
+// a (rare) paid GET falls through to here and returns how to call the service.
+app.get('/cast/create_character', (_req, res) => res.json({ service: 'create_character', price: PRICES.create_character, method: 'POST' }))
+app.get('/cast/render', (_req, res) => res.json({ service: 'render', price: PRICES.render, method: 'POST' }))
+app.get('/cast/turnaround', (_req, res) => res.json({ service: 'turnaround', price: PRICES.turnaround, method: 'POST' }))
 
 // free, unpriced health check
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'cast', network: NETWORK }))
