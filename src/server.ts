@@ -15,6 +15,7 @@ import { render, turnaround } from './pipeline/render.js'
 
 const app = express()
 app.use(express.json({ limit: '10mb' }))
+app.use('/images', express.static('data/images')) // serve stored renders/portraits (free)
 
 // --- x402 payment layer (settles USDT0 on X Layer via OKX facilitator) ---
 const facilitator = new OKXFacilitatorClient({

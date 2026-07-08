@@ -2,6 +2,7 @@ import { fluxCreatePortrait } from './fal.js'
 import { buildPortraitPrompt } from '../prompts.js'
 import { hashImage, mintPassport } from '../chain/passport.js'
 import { saveCharacter } from '../store/db.js'
+import { saveFromUrl } from '../store/images.js'
 import { env } from '../config.js'
 
 export type CreateInput = {
@@ -23,17 +24,19 @@ export type CreateResult = {
 export async function createCharacter(input: CreateInput): Promise<CreateResult> {
   if (!input.description && !input.referenceUrl) throw new Error('Provide description or referenceUrl')
 
-  let portraitUrl: string
+  let portraitSource: string
   let seed: number | undefined
   if (input.referenceUrl) {
-    portraitUrl = input.referenceUrl
+    portraitSource = input.referenceUrl
   } else {
     const p = await fluxCreatePortrait(buildPortraitPrompt(input.description!))
-    portraitUrl = p.url
+    portraitSource = p.url
     seed = p.seed
   }
-  const bytes = new Uint8Array(await (await fetch(portraitUrl)).arrayBuffer())
-  const referenceHash = hashImage(bytes)
+  const stored = await saveFromUrl(portraitSource) // durable copy of the reference
+  const referenceHash = hashImage(stored.bytes)
+  const portraitUrl = stored.url
+  const referenceKey = stored.key
 
   // Mint an on-chain passport only if a contract is configured (else off-chain id).
   const shouldMint = input.mint ?? Boolean(env.PASSPORT_CONTRACT)
@@ -49,7 +52,7 @@ export async function createCharacter(input: CreateInput): Promise<CreateResult>
 
   await saveCharacter({
     charId, owner: input.owner, name: input.name,
-    referenceUrl: portraitUrl, referenceHash, seed, createdAt: Date.now(), renders: 0,
+    referenceUrl: portraitUrl, referenceKey, referenceHash, seed, createdAt: Date.now(), renders: 0,
   })
 
   return { charId, name: input.name, portraitUrl, referenceHash, passportTx }

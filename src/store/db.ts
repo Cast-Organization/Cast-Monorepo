@@ -7,6 +7,7 @@ export type Character = {
   owner: string
   name: string
   referenceUrl: string
+  referenceKey?: string      // durable storage key for the reference image
   referenceHash: string
   seed?: number          // reuse across renders for stronger consistency
   styleRef?: string

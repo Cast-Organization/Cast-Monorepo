@@ -53,6 +53,8 @@ export const env = {
   OKX_SECRET_KEY: process.env.OKX_SECRET_KEY ?? '',
   OKX_PASSPHRASE: process.env.OKX_PASSPHRASE ?? '',
   PORT: Number(process.env.PORT ?? 4000),
+  // Public base URL for serving stored images (set to your domain in production).
+  PUBLIC_BASE_URL: clean(process.env.PUBLIC_BASE_URL) || `http://localhost:${Number(process.env.PORT ?? 4000)}`,
 }
 
 export const xLayer = defineChain({

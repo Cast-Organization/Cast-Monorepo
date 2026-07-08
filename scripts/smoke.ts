@@ -13,16 +13,17 @@ async function main() {
     description: 'a grumpy orange cat detective in a tan trench coat',
     mint: false, // skip on-chain passport for the smoke test
   })
+  const localOf = (url: string) => 'data/images/' + url.split('/images/')[1]
   console.log('   charId:', c.charId)
-  console.log('   reference portrait:', c.portraitUrl)
+  console.log('   reference:', localOf(c.portraitUrl))
 
   const scenes = ['on the surface of the moon', 'as a Renaissance oil painting', 'eating ramen in a neon Tokyo alley']
   console.log('2) Rendering the SAME character across scenes...')
   for (const scene of scenes) {
     const r = await render({ charId: c.charId, scene })
-    console.log(`   [${scene}] ->`, r.imageUrl)
+    console.log(`   [${scene}] ->`, localOf(r.imageUrl))
   }
-  console.log('\n✅ Open the URLs — the cat should be recognizably the same character in every one.')
+  console.log('\n✅ Open the files in data/images/ — the cat should be recognizably the same character in every one.')
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

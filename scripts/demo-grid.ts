@@ -1,7 +1,7 @@
 // Builds the "same character, six worlds" demo asset: renders 6 scenes, downloads them
 // locally (so it won't rot when fal URLs expire), and writes a screenshot-ready HTML grid.
 // Usage: pnpm run demo
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync, copyFileSync } from 'node:fs'
 import { createCharacter } from '../src/pipeline/createCharacter.js'
 import { render } from '../src/pipeline/render.js'
 import { getCharacter } from '../src/store/db.js'
@@ -16,9 +16,11 @@ const SCENES = [
 ]
 const OUT = 'out/demo'
 
-async function download(url: string, path: string) {
-  const buf = Buffer.from(await (await fetch(url)).arrayBuffer())
-  writeFileSync(path, buf)
+// Copy from local storage if the render URL points at our /images store; else download.
+async function materialize(urlOrKey: string, dest: string) {
+  const key = urlOrKey.includes('/images/') ? urlOrKey.split('/images/')[1] : ''
+  if (key && existsSync(`data/images/${key}`)) { copyFileSync(`data/images/${key}`, dest); return }
+  writeFileSync(dest, Buffer.from(await (await fetch(urlOrKey)).arrayBuffer()))
 }
 
 function html(name: string, refFile: string, cells: { scene: string; file: string }[]): string {
@@ -74,15 +76,15 @@ async function main() {
   }
 
   console.log(`Character: ${name} (${charId.slice(0, 12)}…)`)
-  console.log('Downloading reference…')
-  await download(refUrl, `${OUT}/reference.jpg`)
+  console.log('Materializing reference…')
+  await materialize(refUrl, `${OUT}/reference.jpg`)
 
   const cells: { scene: string; file: string }[] = []
   for (let i = 0; i < SCENES.length; i++) {
     const scene = SCENES[i]
     process.stdout.write(`Rendering ${i + 1}/${SCENES.length}: ${scene} … `)
     const r = await render({ charId, scene })
-    await download(r.imageUrl, `${OUT}/scene-${i}.jpg`)
+    await materialize(r.imageUrl, `${OUT}/scene-${i}.jpg`)
     cells.push({ scene, file: `scene-${i}.jpg` })
     console.log('✓')
   }
