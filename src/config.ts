@@ -72,9 +72,22 @@ export const xLayer = defineChain({
 // Settlement token (USDT0) for the active network.
 export const USDT0 = NET.usdt0 as `0x${string}`
 
-// Per-call prices (USD strings; SDK converts to USDT0 atomic units @ 6 decimals).
+// Per-call prices (USD strings; for display).
 export const PRICES = {
   create_character: '$0.50',
   render: '$0.30',
   turnaround: '$1.00',
 } as const
+
+export const PRICE_USD = { echo: 0.01, create_character: 0.5, render: 0.3, turnaround: 1 } as const
+
+// Emit the price as an explicit AssetAmount so the x402 challenge carries `extra.decimals`.
+// The marketplace's task system doesn't recognize USD₮0 by address (only USDT/USDG), so without
+// a decimals field it can't resolve the token → rejects the endpoint. Providing decimals fixes it.
+export function priceOf(usd: number) {
+  return {
+    asset: USDT0,
+    amount: Math.round(usd * 1_000_000).toString(), // USDT0 = 6 decimals
+    extra: { name: 'USD₮0', version: '1', decimals: 6 },
+  }
+}

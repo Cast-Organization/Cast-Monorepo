@@ -7,7 +7,7 @@ import {
 } from '@okxweb3/x402-express'
 import { ExactEvmScheme } from '@okxweb3/x402-evm/exact/server'
 import { isAddress } from 'viem'
-import { env, NETWORK, PRICES } from './config.js'
+import { env, NETWORK, PRICES, priceOf, PRICE_USD } from './config.js'
 import { createCharacter } from './pipeline/createCharacter.js'
 import { render, turnaround } from './pipeline/render.js'
 
@@ -29,14 +29,15 @@ const facilitator = new OKXFacilitatorClient({
 
 const resourceServer = new x402ResourceServer(facilitator).register(NETWORK, new ExactEvmScheme())
 
+const acc = (usd: number) => ({ scheme: 'exact' as const, network: NETWORK, payTo: env.PAY_TO, price: priceOf(usd) })
 const httpServer = new x402HTTPResourceServer(resourceServer, {
-  'POST /cast/echo':             { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: '$0.01' } }, // cheap payment-loop test
-  'POST /cast/create_character': { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.create_character } },
-  'GET /cast/create_character':  { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.create_character } }, // GET probe → 402 challenge (endpoint validation)
-  'POST /cast/render':           { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.render } },
-  'GET /cast/render':            { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.render } },
-  'POST /cast/turnaround':       { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.turnaround } },
-  'GET /cast/turnaround':        { accepts: { scheme: 'exact', network: NETWORK, payTo: env.PAY_TO, price: PRICES.turnaround } },
+  'POST /cast/echo':             { accepts: acc(PRICE_USD.echo) }, // cheap payment-loop test
+  'POST /cast/create_character': { accepts: acc(PRICE_USD.create_character) },
+  'GET /cast/create_character':  { accepts: acc(PRICE_USD.create_character) }, // GET probe → 402 challenge (endpoint validation)
+  'POST /cast/render':           { accepts: acc(PRICE_USD.render) },
+  'GET /cast/render':            { accepts: acc(PRICE_USD.render) },
+  'POST /cast/turnaround':       { accepts: acc(PRICE_USD.turnaround) },
+  'GET /cast/turnaround':        { accepts: acc(PRICE_USD.turnaround) },
 })
 
 app.use(paymentMiddlewareFromHTTPServer(httpServer))
